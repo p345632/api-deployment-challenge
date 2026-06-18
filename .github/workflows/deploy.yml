@@ -1,0 +1,33 @@
+name: Node.js API CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Code to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            # Navigate to the application folder
+            cd ~/api-deployment-challenge
+            
+            # Fetch the latest code modifications from GitHub
+            git reset --hard HEAD
+            git pull origin main
+            
+            # Install production-only dependencies
+            npm install --omit=dev
+            
+            # Restart the process using PM2 to reflect changes
+            pm2 restart sample-api
+            
